@@ -631,6 +631,35 @@
   });
   window.addEventListener('resize', () => { renderTab(); if (!pop.hidden && popFor) placePop(popFor); });
 
+  // ---------- Мобильная заглушка ----------
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  };
+  const isPhone = window.matchMedia('(max-width: 760px)').matches;
+  if (isPhone) {
+    if (store.get('gate-ok')) $('mobile-hint').hidden = !!store.get('hint-off');
+    else { $('mobile-gate').hidden = false; document.body.classList.add('gated'); }
+  }
+  $('gate-continue').addEventListener('click', () => {
+    store.set('gate-ok', '1');
+    $('mobile-gate').hidden = true;
+    document.body.classList.remove('gated');
+    $('mobile-hint').hidden = false;
+    renderTab();
+  });
+  $('hint-close').addEventListener('click', () => { $('mobile-hint').hidden = true; store.set('hint-off', '1'); });
+  $('gate-share').addEventListener('click', async () => {
+    const url = location.origin + location.pathname;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Стенд дрона', url }); return; }
+      await navigator.clipboard.writeText(url);
+      $('gate-note').textContent = 'Ссылка скопирована. Откройте её на компьютере.';
+    } catch (e) {
+      $('gate-note').textContent = 'Ссылка: ' + url;
+    }
+  });
+
   buildSchema();
   readColors();
   selectBlock('planner');

@@ -206,3 +206,21 @@ th .term { font-weight: inherit; }
 .loading { padding: 40px 16px; text-align: center; color: var(--muted); }
 .explain-block ul { padding-left: 20px; margin: 0; }
 .explain-block li { margin-bottom: 6px; }
+
+/* Мобильная заглушка и подсказка */
+.gate { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow-y: auto; padding: 24px 16px 32px; }
+.gate-card { max-width: 520px; margin: 0 auto; }
+.gate-icon { font-size: 40px; }
+.gate h2 { text-transform: none; letter-spacing: 0; color: var(--ink); font-size: 22px; margin: 8px 0 10px; }
+.gate h3 { margin: 20px 0 8px; font-size: 15px; }
+.gate p { margin: 0; color: var(--muted); }
+.gate-list { margin: 0; padding-left: 0; list-style: none; }
+.gate-list li { padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; font-size: 14px; }
+.gate-list b { display: block; color: var(--ink); }
+.gate-actions { display: grid; gap: 8px; margin-top: 18px; }
+.gate-actions button { padding: 12px 14px; }
+.gate-note { margin-top: 10px !important; font-size: 13px; text-align: center; }
+body.gated { overflow: hidden; }
+.mobile-hint { display: flex; gap: 8px; align-items: flex-start; margin: 4px 16px 0; padding: 10px 12px; background: var(--active-soft); color: var(--ink); border-radius: 10px; font-size: 13.5px; }
+.mobile-hint span { flex: 1; }
+.mobile-hint button { border: 0; background: none; padding: 0 4px; font-size: 18px; color: var(--muted); }

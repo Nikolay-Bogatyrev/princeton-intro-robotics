@@ -20,6 +20,11 @@
   </div>
 </header>
 
+<div id="mobile-hint" class="mobile-hint" hidden>
+  <span>🖥️ Визуализацию лучше видно на компьютере: карта, схема и разбор шагов там стоят рядом.</span>
+  <button id="hint-close" aria-label="Скрыть подсказку">×</button>
+</div>
+
 <main class="layout">
   <div class="col-side">
     <section class="panel">
@@ -154,6 +159,29 @@
 <div id="term-pop" class="term-pop" hidden role="dialog" aria-modal="false">
   <button class="close" aria-label="Закрыть">×</button>
   <div class="body"></div>
+</div>
+
+<div id="mobile-gate" class="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="gate-card">
+    <div class="gate-icon" aria-hidden="true">🖥️</div>
+    <h2 id="gate-title">Стенд удобнее открыть на компьютере</h2>
+    <p>Карта, схема робота, пошаговый разбор и 3D-сцена стоят рядом, а на экране телефона их приходится листать по очереди. На компьютере видно, как связаны алгоритм, числа и картинка.</p>
+    <h3>Что стенд делает для слушателя лекций</h3>
+    <ul class="gate-list">
+      <li><b>Готовит к встрече за 30–60 минут.</b> Центральную идею лекции вы трогаете руками, а не только смотрите видео.</li>
+      <li><b>Показывает место темы в роботе.</b> Схема подсвечивает, в каком блоке дрона работает текущая лекция и как он стыкуется с остальными.</li>
+      <li><b>Разбирает алгоритм по шагам.</b> Перемотка вперёд и назад, подсветка строки псевдокода, числа g, h и f на каждом шаге.</li>
+      <li><b>Сравнивает подходы на одной карте.</b> Сколько работы сделал каждый алгоритм и насколько длинный путь нашёл.</li>
+      <li><b>Переводит 2D в 3D.</b> Тот же поиск в объёме: видно, почему клеток становится слишком много и зачем нужна следующая лекция.</li>
+      <li><b>Объясняет термины по клику.</b> Каждое слово и формула раскрываются с примером на текущей карте.</li>
+      <li><b>Подсказывает вопросы.</b> Задания «Попробуйте» помогают прийти на обсуждение со своими вопросами.</li>
+    </ul>
+    <div class="gate-actions">
+      <button id="gate-share" class="primary">Отправить ссылку себе</button>
+      <button id="gate-continue">Всё равно открыть на телефоне</button>
+    </div>
+    <p id="gate-note" class="gate-note" aria-live="polite"></p>
+  </div>
 </div>
 
 <footer class="foot">
