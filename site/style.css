@@ -240,3 +240,11 @@ body.gated { overflow: hidden; }
 .mobile-hint { display: flex; gap: 8px; align-items: flex-start; margin: 4px 16px 0; padding: 10px 12px; background: var(--active-soft); color: var(--ink); border-radius: 10px; font-size: 13.5px; }
 .mobile-hint span { flex: 1; }
 .mobile-hint button { border: 0; background: none; padding: 0 4px; font-size: 18px; color: var(--muted); }
+
+/* Ссылки на ноутбуки */
+.nb-links { list-style: none; margin: 0; padding: 0; }
+.nb-links li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.nb-links li:first-child { border-top: 0; padding-top: 0; }
+.nb-links b, .nb-links span { flex-basis: 100%; }
+.nb-links span { color: var(--muted); font-size: 13px; }
+.btn { display: inline-block; padding: 6px 12px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 600; font-size: 13px; }
