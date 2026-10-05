@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Стенд дрона</title>
+<meta name="description" content="Интерактивный стенд к курсу Princeton Intro to Robotics: схема робота и 2D-мир дрона.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Стенд дрона</h1>
+    <p class="sub">Princeton Intro to Robotics · совместный просмотр</p>
+  </div>
+  <div class="meeting">
+    <span class="pill">Встреча 1 · 12.10</span>
+    <a href="https://youtu.be/cMhFAq53v1c" target="_blank" rel="noopener">Лекция 1</a>
+    <a href="https://youtu.be/LhLd8Kon1GY" target="_blank" rel="noopener">Лекция 2</a>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="panel schema-panel">
+    <h2>Схема робота</h2>
+    <svg id="schema" viewBox="0 0 520 250" role="img" aria-label="Схема автономного дрона: шесть блоков в цикле"></svg>
+    <div id="block-info" class="block-info"></div>
+  </section>
+
+  <section class="panel world-panel">
+    <div class="world-head">
+      <h2>Мир 2D</h2>
+      <span id="phase" class="phase">готов</span>
+    </div>
+    <canvas id="world" aria-label="Карта: препятствия, найденный путь и дрон"></canvas>
+    <p class="hint">Клик по клетке ставит или убирает препятствие.</p>
+    <div class="legend">
+      <span><i class="sw sw-wall"></i>препятствие</span>
+      <span><i class="sw sw-closed"></i>проверено</span>
+      <span><i class="sw sw-open"></i>в очереди</span>
+      <span><i class="sw sw-path"></i>путь</span>
+    </div>
+  </section>
+
+  <section class="panel controls-panel">
+    <h2>Планировщик</h2>
+    <label>Алгоритм
+      <select id="algo"></select>
+    </label>
+    <label>Вес эвристики w <output id="w-out">1.0</output>
+      <input id="w" type="range" min="0" max="5" step="0.5" value="1">
+    </label>
+    <label>Плотность препятствий <output id="density-out">25%</output>
+      <input id="density" type="range" min="0" max="0.45" step="0.05" value="0.25">
+    </label>
+    <label>Размер карты
+      <select id="size"><option>15</option><option selected>25</option><option>40</option></select>
+    </label>
+    <label>Скорость <output id="speed-out">×1</output>
+      <input id="speed" type="range" min="1" max="5" step="1" value="2">
+    </label>
+    <div class="buttons">
+      <button id="run" class="primary">▶ Найти путь и лететь</button>
+      <button id="new-map">Новая карта</button>
+      <button id="clear">Очистить</button>
+    </div>
+    <p id="explain" class="explain"></p>
+  </section>
+
+  <section class="panel stats-panel">
+    <h2>Все алгоритмы на этой карте</h2>
+    <table class="compare">
+      <thead><tr><th>Алгоритм</th><th>Проверено клеток</th><th>Длина пути</th></tr></thead>
+      <tbody id="compare"></tbody>
+    </table>
+    <h3>Попробуйте</h3>
+    <ol class="tasks">
+      <li>Найдите карту, где жадный поиск проверил меньше всех, но путь длиннее, чем у A*.</li>
+      <li>Поднимайте w у A* от 1 до 5: что происходит с числом клеток и длиной пути?</li>
+      <li>Постройте стену с одной узкой щелью. Какой алгоритм дольше ищет проход?</li>
+      <li>Почему у BFS путь бывает длиннее, чем у Dijkstra?</li>
+    </ol>
+  </section>
+</main>
+
+<footer class="foot">
+  Курс: <a href="https://irom-lab.princeton.edu/intro-to-robotics/" target="_blank" rel="noopener">irom-lab.princeton.edu/intro-to-robotics</a> ·
+  Код в ноутбуке: <code>project/01-graph-search.ipynb</code>
+</footer>
+
+<script src="planner.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
