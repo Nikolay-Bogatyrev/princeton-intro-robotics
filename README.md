@@ -48,6 +48,6 @@
 - `lectures/` — заметки по лекциям (`NN-<slug>.md`)
 - `meetings/` — что обсуждали на встречах (`YYYY-MM-DD.md`)
 - `project/` — ноутбуки-тренажёры к лекциям, см. [project/README.md](project/README.md)
-- `site/` — интерактивный стенд «схема робота + 2D-мир дрона», деплоится на Vercel (`vercel.json` отдаёт папку `site/` как статику)
+- `site/` — интерактивный стенд «схема робота + 2D-мир дрона», опубликован на [princeton-intro-robotics.vercel.app](https://princeton-intro-robotics.vercel.app), каждый пуш в `main` деплоится автоматически (`vercel.json` отдаёт папку `site/` как статику)
 
 Локально стенд открывается без сборки: `open site/index.html`.
