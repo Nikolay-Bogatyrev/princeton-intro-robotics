@@ -5,7 +5,7 @@
   const ORBIT_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
   let loading = null;
   let T, scene, camera, renderer, controls, host;
-  let groups = {}, data = null, flyState = null, pathCurve = null;
+  let groups = {}, data = null, flyState = null, pathCurve = null, anim = null, placed = false;
 
   const loadScript = (src) => new Promise((ok, fail) => {
     const s = document.createElement('script');
@@ -22,10 +22,20 @@
       renderer = new T.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio || 1);
       host.appendChild(renderer.domElement);
+      // Подсказка поверх сцены: исчезает после первого движения мышью или пальцем.
+      const hint = document.createElement('div');
+      hint.className = 'hint3d';
+      hint.innerHTML = '<b>Как смотреть</b><span>🖱 Тяните мышью — вращать</span><span>Колесо — приблизить</span><span>Правая кнопка или Shift + тянуть — сдвинуть</span><span>📱 Один палец — вращать, два — приблизить</span>';
+      host.appendChild(hint);
+      const hide = () => hint.classList.add('gone');
+      renderer.domElement.addEventListener('pointerdown', hide, { once: true });
+      renderer.domElement.addEventListener('wheel', hide, { once: true });
       scene = new T.Scene();
       camera = new T.PerspectiveCamera(45, 1, 0.1, 200);
       controls = new T.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
+      controls.autoRotateSpeed = 1.5;
+      controls.addEventListener('start', () => { anim = null; });
       scene.add(new T.AmbientLight(0xffffff, 0.65));
       const sun = new T.DirectionalLight(0xffffff, 0.6);
       sun.position.set(10, 20, 6);
@@ -51,6 +61,7 @@
     requestAnimationFrame(loop);
     if (!host.offsetParent) return; // вкладка скрыта — не рисуем
     if (flyState && flyState.on) stepFly();
+    if (anim) stepView();
     controls.update();
     renderer.render(scene, camera);
   }
@@ -123,10 +134,30 @@
     groups.drone = drone;
 
     for (const k in groups) scene.add(groups[k]);
-    camera.position.set(n * 0.95, h * 1.6, n * 1.1);
-    controls.target.set(0, h * 0.35, 0);
+    if (!placed) { camera.position.copy(viewPos("iso")); controls.target.set(0, h * 0.35, 0); placed = true; }
     setStep(res.expanded.length);
   }
+
+  // Готовые ракурсы. Камера плавно перелетает за 0.6 с.
+  function viewPos(name) {
+    const { n, h } = data.map;
+    if (name === 'top') return new T.Vector3(0.001, n * 1.9, 0.001);
+    if (name === 'side') return new T.Vector3(n * 1.6, h * 0.5, 0.001);
+    if (name === 'front') return new T.Vector3(0.001, h * 0.6, n * 1.7);
+    return new T.Vector3(n * 0.95, h * 1.6, n * 1.1);
+  }
+  function setView(name) {
+    if (!data) return;
+    anim = { from: camera.position.clone(), to: viewPos(name), t0: performance.now(),
+      tFrom: controls.target.clone(), tTo: new T.Vector3(0, data.map.h * 0.35, 0) };
+  }
+  function stepView() {
+    const k = Math.min(1, (performance.now() - anim.t0) / 600), e = 1 - Math.pow(1 - k, 3);
+    camera.position.lerpVectors(anim.from, anim.to, e);
+    controls.target.lerpVectors(anim.tFrom, anim.tTo, e);
+    if (k >= 1) anim = null;
+  }
+  function setAutoRotate(on) { if (controls) controls.autoRotate = on; }
 
   function setStep(s) {
     if (!data) return;
@@ -151,6 +182,6 @@
     if (u >= 1) flyState.on = false;
   }
 
-  const api = { ready: false, load, setData, setStep, fly };
+  const api = { ready: false, load, setData, setStep, fly, setView, setAutoRotate };
   root.View3D = api;
 })(this);

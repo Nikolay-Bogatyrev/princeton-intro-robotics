@@ -129,7 +129,15 @@
 
     <!-- 3D -->
     <div class="tab" id="tab-d3" hidden>
-      <p class="lead">Тот же поиск, но в объёме: карта из <button class="term" data-term="voxel">вокселей</button>, поперёк стоит стена с окном под потолком. Крутите сцену мышью или пальцем.</p>
+      <p class="lead">Тот же поиск, но в объёме: карта из <button class="term" data-term="voxel">вокселей</button>, поперёк стоит стена с окном под потолком. Сцену можно вращать: тяните мышью, колесо приближает.</p>
+      <div class="views" role="group" aria-label="Ракурс камеры">
+        <span class="views-label">Ракурс:</span>
+        <button data-view="iso" class="on">3/4</button>
+        <button data-view="top">Сверху, как в 2D</button>
+        <button data-view="side">Сбоку: видна высота</button>
+        <button data-view="front">Спереди: стена с окном</button>
+        <label class="auto"><input type="checkbox" id="auto-rotate"> Автоповорот</label>
+      </div>
       <div id="view3d" class="view3d"><div class="loading">Загружаю 3D…</div></div>
       <div class="player" id="player-3d"></div>
       <div class="buttons"><button id="new-map-3d">Новая 3D-карта</button></div>

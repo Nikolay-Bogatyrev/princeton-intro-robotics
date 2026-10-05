@@ -538,6 +538,11 @@
       $('view3d').innerHTML = '<div class="loading">Не удалось загрузить 3D-библиотеку. Проверьте интернет и обновите страницу.</div>';
     });
   }
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-view]').forEach((o) => o.classList.toggle('on', o === b));
+    window.View3D && window.View3D.setView(b.dataset.view);
+  }));
+  $('auto-rotate').addEventListener('change', (e) => window.View3D && window.View3D.setAutoRotate(e.target.checked));
   $('new-map-3d').addEventListener('click', () => { state.seed3 += 1; state.map3 = null; recompute3d(); });
 
   // ---------- Словарь и всплывающие подсказки ----------
