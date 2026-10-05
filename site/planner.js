@@ -94,7 +94,7 @@
     const gCost = new Map([[key(...start), 0]]);
     const parent = new Map([[key(...start), -1]]);
     const closed = new Set();
-    const expanded = [], frontiers = [];
+    const expanded = [], frontiers = [], log = [];
     let counter = 0;
     const bfs = algo === 'BFS';
     const queue = bfs ? [key(...start)] : new Heap();
@@ -107,18 +107,22 @@
       if (closed.has(k)) continue;
       closed.add(k);
       expanded.push(k);
-      frontiers.push(bfs ? queue.slice(head) : queue.items());
-      if (k === goalKey) break;
       const x = k % n, y = (k / n) | 0;
+      const entry = { k, g: gCost.get(k), h: heuristic([x, y], goal), added: 0, improved: 0, goal: k === goalKey };
+      log.push(entry);
+      if (k === goalKey) { frontiers.push(bfs ? queue.slice(head) : queue.items()); break; }
       for (const [nx, ny, cost] of neighbors(grid, x, y)) {
         const nk = key(nx, ny), g = gCost.get(k) + cost;
         if (bfs) {
-          if (!parent.has(nk)) { parent.set(nk, k); gCost.set(nk, g); queue.push(nk); }
+          if (!parent.has(nk)) { parent.set(nk, k); gCost.set(nk, g); queue.push(nk); entry.added++; }
         } else if (!closed.has(nk) && g < (gCost.has(nk) ? gCost.get(nk) : Infinity)) {
+          if (gCost.has(nk)) entry.improved++; else entry.added++;
           gCost.set(nk, g); parent.set(nk, k);
           queue.push([priority(g, nx, ny), ++counter, nk]);
         }
       }
+      // Фронтир после шага: что осталось в очереди.
+      frontiers.push(bfs ? queue.slice(head) : queue.items().filter((q) => !closed.has(q)));
     }
 
     const path = [];
@@ -129,10 +133,92 @@
     let length = 0;
     for (let i = 1; i < path.length; i++)
       length += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
-    return { path, length, expanded, frontiers, n };
+    return { path, length, expanded, frontiers, log, gCost, parent, closedAt: new Map(expanded.map((k, i) => [k, i + 1])), n };
   }
 
-  const api = { makeMap, search, heuristic, ALGOS: ['BFS', 'Dijkstra', 'Greedy', 'A*'] };
+  // ---------- 3D: тот же A*, но в кубиках-вокселях ----------
+  // grid[z][y][x]; 26 соседей; цена шага 1, √2 или √3.
+  function makeMap3d(n, h, density, seed) {
+    const rand = rng(seed * 7919);
+    const grid = [];
+    for (let z = 0; z < h; z++) {
+      grid.push([]);
+      for (let y = 0; y < n; y++) grid[z].push(new Array(n).fill(0));
+    }
+    // Колонны разной высоты от пола и несколько висящих плит.
+    for (let y = 0; y < n; y++)
+      for (let x = 0; x < n; x++)
+        if (rand() < density) {
+          const top = 1 + Math.floor(rand() * h);
+          for (let z = 0; z < top; z++) grid[z][y][x] = 1;
+        }
+    for (let s = 0; s < 3; s++) {
+      const z = 2 + Math.floor(rand() * (h - 3)), x0 = Math.floor(rand() * (n - 4)), y0 = Math.floor(rand() * (n - 4));
+      for (let y = y0; y < y0 + 4; y++) for (let x = x0; x < x0 + 4; x++) grid[z][y][x] = 1;
+    }
+    // Стена поперёк карты с окном: прямой путь у пола закрыт.
+    const wy = Math.floor(n / 2), gx = Math.floor(rand() * (n - 3)) + 1, gz = h - 3;
+    for (let z = 0; z < h; z++) for (let x = 0; x < n; x++)
+      grid[z][wy][x] = (z >= gz && z <= gz + 1 && x >= gx && x <= gx + 1) ? 0 : 1;
+    const start = [1, 1, 0], goal = [n - 2, n - 2, 0];
+    for (const [cx, cy, cz] of [start, goal])
+      for (let z = cz; z <= cz + 1; z++)
+        for (let y = cy - 1; y <= cy + 1; y++)
+          for (let x = cx - 1; x <= cx + 1; x++) grid[z][y][x] = 0;
+    return { grid, start, goal, n, h };
+  }
+
+  function heuristic3d(a, b) {
+    const d = [Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]), Math.abs(a[2] - b[2])].sort((p, q) => p - q);
+    return Math.sqrt(3) * d[0] + SQRT2 * (d[1] - d[0]) + (d[2] - d[1]);
+  }
+
+  function search3d(map, algo, w = 1) {
+    const { grid, start, goal, n, h } = map;
+    const key = (x, y, z) => (z * n + y) * n + x;
+    const unkey = (k) => [k % n, ((k / n) | 0) % n, (k / (n * n)) | 0];
+    const free = (x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < n && y < n && z < h && !grid[z][y][x];
+    const priority = (g, p) =>
+      algo === 'Dijkstra' ? g : algo === 'Greedy' ? heuristic3d(p, goal) : g + w * heuristic3d(p, goal);
+    const bfs = algo === 'BFS';
+    const sk = key(...start), gk = key(...goal);
+    const gCost = new Map([[sk, 0]]), parent = new Map([[sk, -1]]), closed = new Set(), expanded = [];
+    const queue = bfs ? [sk] : new Heap();
+    let head = 0, counter = 0;
+    if (!bfs) queue.push([priority(0, start), 0, sk]);
+    while (bfs ? head < queue.length : queue.size) {
+      const k = bfs ? queue[head++] : queue.pop()[2];
+      if (closed.has(k)) continue;
+      closed.add(k); expanded.push(k);
+      if (k === gk) break;
+      const [x, y, z] = unkey(k);
+      for (let dz = -1; dz <= 1; dz++) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy && !dz) continue;
+        const nx = x + dx, ny = y + dy, nz = z + dz;
+        if (!free(nx, ny, nz)) continue;
+        // Не срезаем углы: все кубики в «коробке» шага должны быть свободны.
+        if ((dx && dy && (!free(nx, y, z) || !free(x, ny, z))) ||
+            (dx && dz && (!free(nx, y, z) || !free(x, y, nz))) ||
+            (dy && dz && (!free(x, ny, z) || !free(x, y, nz))) ||
+            (dx && dy && dz && (!free(nx, ny, z) || !free(nx, y, nz) || !free(x, ny, nz)))) continue;
+        const nk = key(nx, ny, nz), g = gCost.get(k) + Math.hypot(dx, dy, dz);
+        if (bfs) {
+          if (!parent.has(nk)) { parent.set(nk, k); gCost.set(nk, g); queue.push(nk); }
+        } else if (!closed.has(nk) && g < (gCost.has(nk) ? gCost.get(nk) : Infinity)) {
+          gCost.set(nk, g); parent.set(nk, k);
+          queue.push([priority(g, [nx, ny, nz]), ++counter, nk]);
+        }
+      }
+    }
+    const path = [];
+    if (closed.has(gk)) for (let k = gk; k !== -1; k = parent.get(k)) path.push(unkey(k));
+    path.reverse();
+    let length = 0;
+    for (let i = 1; i < path.length; i++) length += Math.hypot(...path[i].map((v, j) => v - path[i - 1][j]));
+    return { path, length, expanded: expanded.map(unkey) };
+  }
+
+  const api = { makeMap, search, heuristic, makeMap3d, search3d, heuristic3d, ALGOS: ['BFS', 'Dijkstra', 'Greedy', 'A*'] };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Planner = api;
 })(this);

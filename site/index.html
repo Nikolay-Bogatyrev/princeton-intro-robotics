@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Стенд дрона</title>
-<meta name="description" content="Интерактивный стенд к курсу Princeton Intro to Robotics: схема робота и 2D-мир дрона.">
+<meta name="description" content="Интерактивный стенд к курсу Princeton Intro to Robotics: схема робота, поиск пути в 2D и 3D, словарь терминов.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,67 +21,140 @@
 </header>
 
 <main class="layout">
-  <section class="panel schema-panel">
-    <h2>Схема робота</h2>
-    <svg id="schema" viewBox="0 0 520 250" role="img" aria-label="Схема автономного дрона: шесть блоков в цикле"></svg>
-    <div id="block-info" class="block-info"></div>
-  </section>
+  <div class="col-side">
+    <section class="panel">
+      <h2>Схема робота</h2>
+      <svg id="schema" viewBox="0 0 520 250" role="img" aria-label="Схема автономного дрона: шесть блоков в цикле"></svg>
+      <div id="block-info" class="block-info"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Планировщик</h2>
+      <label>Алгоритм
+        <select id="algo"></select>
+      </label>
+      <label>Вес эвристики <button class="term" data-term="w">w</button> <output id="w-out">1.0</output>
+        <input id="w" type="range" min="0" max="5" step="0.5" value="1">
+      </label>
+      <label>Плотность препятствий <output id="density-out">25%</output>
+        <input id="density" type="range" min="0" max="0.45" step="0.05" value="0.2">
+      </label>
+      <label>Размер карты
+        <select id="size"><option>15</option><option selected>25</option><option>40</option></select>
+      </label>
+      <label>Скорость анимации <output id="speed-out">×2</output>
+        <input id="speed" type="range" min="1" max="5" step="1" value="2">
+      </label>
+      <div class="buttons">
+        <button id="new-map">Новая карта</button>
+        <button id="clear">Очистить</button>
+      </div>
+      <p id="explain" class="explain"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Попробуйте</h2>
+      <ol class="tasks">
+        <li>Во вкладке «Сравнение» найдите карту, где <button class="term" data-term="Greedy">Greedy</button> проверил меньше всех, но путь длиннее, чем у <button class="term" data-term="A*">A*</button>.</li>
+        <li>Поднимайте <button class="term" data-term="w">w</button> от 1 до 5. Что происходит с числом клеток и с длиной пути?</li>
+        <li>Включите «Ставить стены» и постройте стену с узкой щелью. Какой алгоритм дольше ищет проход?</li>
+        <li>Почему путь <button class="term" data-term="BFS">BFS</button> бывает длиннее, чем у <button class="term" data-term="Dijkstra">Dijkstra</button>?</li>
+        <li>Во вкладке «3D» сравните, во сколько раз больше клеток проверяет A* в объёме, чем на плоскости.</li>
+      </ol>
+    </section>
+  </div>
 
   <section class="panel world-panel">
-    <div class="world-head">
-      <h2>Мир 2D</h2>
-      <span id="phase" class="phase">готов</span>
-    </div>
-    <canvas id="world" aria-label="Карта: препятствия, найденный путь и дрон"></canvas>
-    <p class="hint">Клик по клетке ставит или убирает препятствие.</p>
-    <div class="legend">
-      <span><i class="sw sw-wall"></i>препятствие</span>
-      <span><i class="sw sw-closed"></i>проверено</span>
-      <span><i class="sw sw-open"></i>в очереди</span>
-      <span><i class="sw sw-path"></i>путь</span>
-    </div>
-  </section>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="step" class="on">Пошагово</button>
+      <button role="tab" data-tab="compare">Сравнение</button>
+      <button role="tab" data-tab="d3">3D</button>
+      <button role="tab" data-tab="glossary">Словарь</button>
+    </nav>
 
-  <section class="panel controls-panel">
-    <h2>Планировщик</h2>
-    <label>Алгоритм
-      <select id="algo"></select>
-    </label>
-    <label>Вес эвристики w <output id="w-out">1.0</output>
-      <input id="w" type="range" min="0" max="5" step="0.5" value="1">
-    </label>
-    <label>Плотность препятствий <output id="density-out">25%</output>
-      <input id="density" type="range" min="0" max="0.45" step="0.05" value="0.25">
-    </label>
-    <label>Размер карты
-      <select id="size"><option>15</option><option selected>25</option><option>40</option></select>
-    </label>
-    <label>Скорость <output id="speed-out">×1</output>
-      <input id="speed" type="range" min="1" max="5" step="1" value="2">
-    </label>
-    <div class="buttons">
-      <button id="run" class="primary">▶ Найти путь и лететь</button>
-      <button id="new-map">Новая карта</button>
-      <button id="clear">Очистить</button>
+    <!-- Пошагово -->
+    <div class="tab" id="tab-step">
+      <div class="world-head">
+        <span id="phase" class="phase"></span>
+        <div class="seg" role="group" aria-label="Что делает клик по карте">
+          <button data-click="inspect" class="on">Осмотреть клетку</button>
+          <button data-click="wall">Ставить стены</button>
+        </div>
+      </div>
+      <canvas id="world" aria-label="Карта: препятствия, найденный путь и дрон"></canvas>
+      <div class="player" id="player-main"></div>
+      <div class="legend">
+        <span><i class="sw sw-wall"></i>препятствие</span>
+        <span><i class="sw sw-closed"></i><button class="term" data-term="closed">проверено</button></span>
+        <span><i class="sw sw-open"></i><button class="term" data-term="frontier">в очереди</button></span>
+        <span><i class="sw sw-cur"></i>текущая клетка</span>
+        <span><i class="sw sw-path"></i><button class="term" data-term="path-length">путь</button></span>
+      </div>
+      <div class="how">
+        <div>
+          <h3>Как работает алгоритм</h3>
+          <ol id="pseudo" class="pseudo"></ol>
+        </div>
+        <div>
+          <h3>Что происходит на этом шаге</h3>
+          <div id="narrative" class="narrative"></div>
+          <h3>Клетка под лупой</h3>
+          <div id="inspector" class="narrative muted">Кликните по клетке на карте.</div>
+        </div>
+      </div>
     </div>
-    <p id="explain" class="explain"></p>
-  </section>
 
-  <section class="panel stats-panel">
-    <h2>Все алгоритмы на этой карте</h2>
-    <table class="compare">
-      <thead><tr><th>Алгоритм</th><th>Проверено клеток</th><th>Длина пути</th></tr></thead>
-      <tbody id="compare"></tbody>
-    </table>
-    <h3>Попробуйте</h3>
-    <ol class="tasks">
-      <li>Найдите карту, где жадный поиск проверил меньше всех, но путь длиннее, чем у A*.</li>
-      <li>Поднимайте w у A* от 1 до 5: что происходит с числом клеток и длиной пути?</li>
-      <li>Постройте стену с одной узкой щелью. Какой алгоритм дольше ищет проход?</li>
-      <li>Почему у BFS путь бывает длиннее, чем у Dijkstra?</li>
-    </ol>
+    <!-- Сравнение -->
+    <div class="tab" id="tab-compare" hidden>
+      <p class="lead">Одна карта, четыре алгоритма, общий счётчик шагов. Клик по мини-карте открывает алгоритм во вкладке «Пошагово».</p>
+      <div class="minis" id="minis"></div>
+      <div class="player" id="player-compare"></div>
+      <h3>Все пути на одной карте</h3>
+      <canvas id="overlay" class="overlay" aria-label="Пути всех алгоритмов поверх одной карты"></canvas>
+      <table class="compare">
+        <thead><tr>
+          <th>Алгоритм</th>
+          <th><button class="term" data-term="closed">Проверено клеток</button></th>
+          <th><button class="term" data-term="path-length">Длина пути</button></th>
+          <th>Длиннее <button class="term" data-term="optimal">кратчайшего</button></th>
+        </tr></thead>
+        <tbody id="compare"></tbody>
+      </table>
+    </div>
+
+    <!-- 3D -->
+    <div class="tab" id="tab-d3" hidden>
+      <p class="lead">Тот же поиск, но в объёме: карта из <button class="term" data-term="voxel">вокселей</button>, поперёк стоит стена с окном под потолком. Крутите сцену мышью или пальцем.</p>
+      <div id="view3d" class="view3d"><div class="loading">Загружаю 3D…</div></div>
+      <div class="player" id="player-3d"></div>
+      <div class="buttons"><button id="new-map-3d">Новая 3D-карта</button></div>
+      <table class="compare">
+        <thead><tr><th></th><th>Плоскость 2D</th><th>Объём 3D</th></tr></thead>
+        <tbody id="d3-table"></tbody>
+      </table>
+      <div class="explain-block">
+        <h3>Что меняется в 3D</h3>
+        <ul>
+          <li>Клетка становится кубиком, <button class="term" data-term="voxel">вокселем</button>. Соседей не 8, а 26: добавляются шаги вверх, вниз и по диагоналям куба (<button class="term" data-term="neighbor">связность</button>).</li>
+          <li><button class="term" data-term="step-cost">Цена шага</button> бывает 1, √2 и √3. Эвристика меняется на <button class="term" data-term="heuristic-3d">трёхмерную</button>.</li>
+          <li>Сам алгоритм не меняется ни на строчку: A* не знает, сколько измерений у мира, ему нужны только соседи и цены.</li>
+          <li>Но клеток становится намного больше. Это <button class="term" data-term="curse-dim">проклятие размерности</button>, и оно подводит к лекции 3 про RRT.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Словарь -->
+    <div class="tab" id="tab-glossary" hidden>
+      <p class="lead">Все термины стенда. В тексте они подчёркнуты пунктиром и открываются по клику.</p>
+      <div id="glossary" class="glossary"></div>
+    </div>
   </section>
 </main>
+
+<div id="term-pop" class="term-pop" hidden role="dialog" aria-modal="false">
+  <button class="close" aria-label="Закрыть">×</button>
+  <div class="body"></div>
+</div>
 
 <footer class="foot">
   Курс: <a href="https://irom-lab.princeton.edu/intro-to-robotics/" target="_blank" rel="noopener">irom-lab.princeton.edu/intro-to-robotics</a> ·
@@ -89,6 +162,8 @@
 </footer>
 
 <script src="planner.js"></script>
+<script src="terms.js"></script>
+<script src="view3d.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
