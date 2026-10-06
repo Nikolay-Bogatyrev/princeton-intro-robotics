@@ -4,13 +4,13 @@
 
 | Встреча | Ноутбук |
 |---|---|
-| 1 (12.10) | [01-graph-search.ipynb](01-graph-search.ipynb): BFS, Dijkstra, Greedy и A* на одной карте |
+| 1 (12.10) | [01-graph-search.ipynb](01-graph-search.ipynb): BFS, Dijkstra, Greedy и A* на одной карте · [открыть в Colab](https://colab.research.google.com/github/Nikolay-Bogatyrev/princeton-intro-robotics/blob/main/project/01-graph-search.ipynb) |
 
 Тот же материал в браузере без Python — стенд в [`../site/`](../site/index.html).
 
 ## Как запустить
 
-- **Google Colab:** откройте colab.research.google.com, выберите «Файл → Загрузить блокнот», затем «Среда выполнения → Выполнить все». Ничего ставить не нужно.
+- **Google Colab:** нажмите «открыть в Colab» в таблице выше, затем «Среда выполнения → Выполнить все». Ничего ставить не нужно.
 - **Локально:** `pip install numpy matplotlib ipywidgets jupyterlab`, затем `jupyter lab`.
 
 ## Проверка формата
